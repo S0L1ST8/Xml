@@ -32,6 +32,7 @@ void Serialize(const movie_list& movies, std::string_view filepath) {
 
         movie_node.append_attribute("id").set_value(movie.id);
         movie_node.append_attribute("title").set_value(movie.title.c_str());
+        movie_node.append_attribute("year").set_value(movie.year);
         movie_node.append_attribute("length").set_value(movie.length);
 
         auto cast_node = movie_node.append_child("cast");
@@ -128,4 +129,31 @@ int main() {
     assert(result.size() == 2);
     assert(result[0].title == "The Matrix");
     assert(result[1].title == "Forrest Gump");
+
+    pugi::xml_document doc;
+    if (doc.load_file("movies.xml")) {
+        try {
+            auto titles = doc.select_nodes("/movies/movie[@year>1995]");
+
+            for (auto it : titles) {
+                std::cout << it.node().attribute("title").as_string()
+                          << std::endl;
+            }
+        }
+        catch (const pugi::xpath_exception& e) {
+            std::cout << e.result().description() << std::endl;
+        }
+
+        try {
+            auto titles = doc.select_nodes("/movies/movie/cast/role[last()]");
+
+            for (auto it : titles) {
+                std::cout << it.node().attribute("star").as_string()
+                          << std::endl;
+            }
+        }
+        catch (const pugi::xpath_exception& e) {
+            std::cout << e.result().description() << std::endl;
+        }
+    }
 }
